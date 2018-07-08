@@ -1,0 +1,37 @@
+function data_output = VQ_Quantize(data_input, distr, Mu, Sigm, bit,dim, flag)
+
+cb_size = 2^(bit);
+filename=['..\Quantize\VQ_dim',num2str(dim),'_size',num2str(cb_size),'_',distr,'.mat'];
+if exist(filename,'file')
+    load(filename);
+else
+    data_train = randn(1,ceil(60000/dim)*dim);   
+    Mu = mean(data_train(:));
+    Sigm = std(data_train(:));
+    nn = fix(length(data_train)/dim);
+    data_train = reshape(data_train, [dim, nn]);
+    [~,codebk] = kmeans(data_train',cb_size);
+    codebk = codebk';
+    save(filename,'codebk');
+end
+
+if flag ==1
+    data_input = (data_input-Mu)./Sigm;
+    nn = fix(length(data_input)/dim);
+    data_input = reshape(data_input, [dim, nn]);
+    data_output = zeros(1,nn);
+    cb_size = size(codebk,2);
+    for i=1:nn
+        [~,data_output(i)]=min(sum((repmat(data_input(:,i),1,cb_size)-codebk).^2,1));
+    end
+    
+elseif flag ==0
+    nn = size(data_input,2);
+    data_output = zeros(dim, nn);
+    for i=1:nn
+        data_output(:,i) = codebk(:,data_input(i));
+    end
+    data_output = (data_output(:))'.*Sigm+Mu;
+end
+
+end

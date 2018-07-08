@@ -1,0 +1,41 @@
+function  [Trans,quantize]=CS_encode(ori_im,s_model,par)
+randn('state',0);
+rand('state',0);
+%%
+[par]=Compressive_sensing(s_model,par);
+A_Y=@(z)A_bp2(z,quantize.OMEGA,quantize.P_image,quantize.P_block,quantize.Phi);
+par.y=A_Y(ori_im(:));
+
+
+
+
+%%
+
+
+return;
+
+
+
+function [par]=Compressive_sensing(model,par)
+
+    rand('seed',0);   
+    h=par.image_height;
+    w=par.image_width;
+    N_dc=par.N_dc;
+    N=h*w;
+    P_image=randperm(N);%P_image=1:N;
+    block_size=par.block_size;
+    P_block=randperm(block_size*block_size);%P_block=1:(block_size*block_size);
+    Phi=NLR_GenerateProjection(par.block_size,model);%K=round(N*rate-N_dc);
+    q=1:N;%q=[1:N_dc,randperm(N-N_dc)+N_dc];
+    step=quantize.prograssive_step;
+    OMEGA=cell([1,length(step)]);
+    for i=1:length(step)
+       OMEGA{i}= q(step(i,1):step(i,2));
+    end    
+    quantize.P_image=P_image;
+    quantize.P_block=P_block;
+    quantize.Phi=Phi;
+    quantize.OMEGA=OMEGA;
+        
+return;

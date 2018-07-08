@@ -1,0 +1,18 @@
+function [data_output]=Vector_Quantize(data_input, codebk, dim, nn, flag)
+
+if flag ==1
+    data_output = zeros(nn,1);
+    cb_size = size(codebk)
+    for i=1:nn
+        [~,data_output(i)]=min(sum((repmat(data_input(:,i),1,cb_size)-codebk).^2,1));
+    end
+    
+elseif flag ==0
+    data_output = zeros(dim, nn);
+    for i=1:nn
+        data_output(:,i) = codebk(:,data_input(i));
+    end
+    data_output = data_output(:);
+end
+
+end

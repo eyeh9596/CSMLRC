@@ -1,0 +1,41 @@
+clear
+randn('state',2)
+addpath('..\Quantize')
+bit = 5;
+q_l = 2^bit;
+distr='Gaussian';
+filename=['baq_',num2str(q_l),'_',distr,'.mat'];
+load(filename);
+
+dim = 2;
+indx = N_generate(q_l, dim);
+for i =1:size(indx,2)
+    for j =1:dim
+        init(j,i) = y(indx(j,i));
+    end
+end
+init = 0.2.*init;
+data_input = randn(1,10000);
+
+cb_size = 2^(bit*dim);
+
+filename=['..\Quantize\VQ_dim',num2str(dim),'_size',num2str(cb_size),'_',distr,'.mat'];
+if exist(filename,'file')
+    load(filename);
+else
+end
+    nn = fix(length(data_input)/dim);
+    data_input = reshape(data_input, [dim, nn]);
+    [IDX,codebk] = kmeans(data_input',cb_size);
+    codebk = codebk';
+    save(filename,'codebk');
+
+%codebk = y;
+%codebk = VQ_LBG_simple(data_input, init);
+[data_output]=Vector_Quantize(data_input(:), codebk, dim, 1);
+[data_input_in]=Vector_Quantize(data_output, codebk, dim, 0);
+sum(sum((data_input(:)-data_input_in).^2))
+
+
+
+
